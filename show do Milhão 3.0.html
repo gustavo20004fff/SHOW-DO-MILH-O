@@ -1,0 +1,227 @@
+<!DOCTYPE html>  
+<html lang="pt-BR">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>Show do Milhão - Tutóia/MA</title>  
+  <style>  
+    body {  
+      font-family: Arial, sans-serif;  
+      background: linear-gradient(to bottom, #001f3f, #0074D9);  
+      color: white;  
+      text-align: center;  
+      padding: 20px;  
+    }  
+    #game, #menu {  
+      max-width: 700px;  
+      margin: auto;  
+      background: rgba(0,0,0,0.7);  
+      padding: 20px;  
+      border-radius: 15px;  
+    }  
+    img {  
+      max-width: 100%;  
+      border-radius: 12px;  
+      margin-bottom: 15px;  
+    }  
+    button {  
+      display: block;  
+      width: 100%;  
+      margin: 10px 0;  
+      padding: 10px;  
+      font-size: 18px;  
+      border-radius: 8px;  
+      cursor: pointer;  
+      border: none;  
+    }  
+    .lifeline { background: #FFDC00; color: black; font-weight: bold; }  
+    .play { background: #0074D9; color: white; font-weight: bold; font-size: 22px; }  
+    .restart { background: #FF851B; color: white; font-weight: bold; font-size: 20px; }  
+  </style>  
+</head>  
+<body>  
+  <!-- Menu Principal -->  
+  <div id="menu">  
+    <h1>🎮 Show do Milhão - Tutóia/MA 🎉</h1>  
+    <p>Teste seus conhecimentos sobre a história e cultura de Tutóia!</p>  
+    <button class="play" onclick="startGame()">▶ Jogar</button>  
+  </div>  
+
+  <!-- Área do jogo -->  
+  <div id="game" style="display:none;">  
+    <h1>Show do Milhão/Tutóia - MA</h1>  
+    <img id="questionImg" src="" alt="Imagem da questão">  
+    <p id="question"></p>  
+    <div id="options"></div>  
+    <p id="timer"></p>  
+    <p id="prize"></p>  
+    <div>  
+      <button class="lifeline" onclick="use5050()">50:50</button>  
+      <button class="lifeline" onclick="skipQuestion()">Pular</button>  
+      <button class="lifeline" onclick="askAudience()">Plateia</button>  
+    </div>  
+    <div id="endGame" style="display:none; margin-top:20px;">  
+      <button class="restart" onclick="goToMenu()">🔄 Reiniciar</button>  
+    </div>  
+  </div>  
+  
+  <!-- Sons -->  
+  <audio id="menuMusic" src="https://www.myinstants.com/media/sounds/show-do-milhao-theme.mp3" loop preload="auto"></audio>  
+  <audio id="correctSound" src="https://www.myinstants.com/media/sounds/certa-resposta-show-do-milhao.mp3" preload="auto"></audio>  
+  <audio id="wrongSound" src="https://www.myinstants.com/media/sounds/silvio-santos-resposta-errada.mp3" preload="auto"></audio>  
+  <audio id="introSound" src="https://www.myinstants.com/media/sounds/vinheta-show-do-milhao.mp3" preload="auto"></audio>  
+  
+  <script>  
+    // ---------------- PERGUNTAS ORIGINAIS ----------------  
+    const questions = [  
+      { q: "Qual o ano em que o Porto de Salinas que se localizava na região da cidade de Tutóia/MA foi criado:", options: ["1901","1946","1879","1822"], answer: 3, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpdbWONV5_e7pYIeNQRGFjjldsAWekYFBqSAeMu1zdNI82kilTXBmVyhA&s=10px" },  
+      { q: "Qual o nome do coronel que é conhecido como fundador da cidade de Tutóia/MA ?", options: ["Antônio José das Neves","Paulino Gomes Neves","Sabino Conceição","Franklin Gomes Veras"], answer: 1, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTClEd0Q_ef4t7HC-5hLDwMV1ljFBF4eIWppw&s" },  
+      { q: "Qual a importância do Porto de Tutóia no passado?", options: ["era usado apenas para pesca local","servia como ponto de troca de mercadorias e escoamento da produção","foi construído apenas para turismo","não teve importância histórica"], answer: 1, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlEgwLEoROZP2_bCutzKLCOd-LYxiiazvSMOxmHbbE19qCmEcPBJGbKzA&s=10" },  
+      { q: "Como os indígenas influenciaram a história de Tutóia?", options: ["com sua cultura, costumes e presença na formação da cidade","apenas como trabalhadores rurais no período colonial","Não tiveram influência na região","apenas ajudaram na construção do porto"], answer: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRV4lDQHOF-IrnQKd7mVdR4reWUSIHk_9NdK6-bWyk4QyIcbHz97pEYyMc&s=10" },  
+      { q: "Tutóia é conhecida por suas belezas naturais. Qual é uma das principais atrações turísticas da região?", options: ["Chapada das Mesas","pequenos lençóis","Parque Nacional da Serra da Capivara","Floresta Amazônica"], answer: 1, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsjhen6goeLkFDLUgqyOuCQt39Nh4VaAV6D5uSQcWHMpN9fHxGsOcmiT4X&s=10" },  
+      { q: "Dentre as atividades econômicas citadas a seguir, qual a predominante em Tutóia atualmente?", options: ["Indústria","Agricultura","Turismo","Comércio"], answer: 2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp3EBtvBy6Om2IYtzILIsUGw86I0XmwfYCSp_gnQ2J-uoQu9d6_SS5XH1a&s=10" },  
+      { q: "Em que ano Tutóia adquiriu foros de cidade?", options: ["em 1933","em 1500","em 1938","em 2021"], answer: 2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3vYBvGLKV9l2ca4YQ672kYbp7YHPoZSegtYdhhs2wd6cAyRxNzL1n6Bo&s=10" },  
+      { q: "Onde foi a primeira sede da cidade de Tutóia?", options: ["Povoado de Porto Salinas","Povoado Tutóia antiga","Povoado comum","Povoado Tutoia"], answer: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMuy7d4IlOn6qR_mHWwFWFYGyYETAwg1Tlk_A8tL8mr0S0tgP1vxLyoGyW&s=10" },  
+      { q: "Segundo o IBGE, qual era a estimativa da população de Tutóia no ano de 2022?", options: ["32.459 habitantes","53.356 habitantes","47.294 habitantes","55076 habitantes"], answer: 1, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgm5zjafRu3oANdVnm2_u2V3Ay_ndzGcXBW4uv5ebbvtCjgUEtrwuKbJZH&s=10" },  
+      { q: "Qual povo indígena é considerado um dos primeiros habitantes da região de Tutóia?", options: ["Tupinambás","Timbiras","Guajajaras","Tremembés"], answer: 3, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5KibOO3Mxxrz5K8TgHqwuDonA92Tu4UmjB5RvTIcAyYU47Y4heoUYZOzX&s=10" },  
+      { q: "Qual manifestação cultural é tradicionalmente celebrada em Tutóia?", options: ["Carnaval de Olinda","Dança do Caroço","Festa do Divino Pai Eterno","Congada Mineira"], answer: 1, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoM48dBsKEsZBjBvrqFENLTCdCOuNcuh39Iwvh7qLtP7YIpngROUDOmAA&s=10" },  
+      { q: "Qual das praias citadas a seguir pertence ao litoral de Tutóia?", options: ["Praia da Barra","Praia do Futuro","Praia do Barro Vermelho","Praia dos Carneiros"], answer: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROBRYIb4Q5U0PuqlR7x5In7O03J1UrWtWC0w&usqp=CAU" },  
+      { q: "Qual desses povoados pertence ao município de Tutóia?", options: ["Buriti dos Lopes","Vista alegre","Santo Antônio","Paulino Neves"], answer: 2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQR3hZ8M8N8fbsNDRT34Wk6R_EGQwJMlQigtA&s" },  
+      { q: "Qual o principal bioma encontrado na região da cidade de Tutóia?", options: ["Cerrado","Caatinga","Amazônia","Manguezal e restinga"], answer: 3, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUcIBevTFq8G4G-BTFqDG44BlX3MYmUdsrEDahtf7WSRnGt_qeb4fiMtR1&s=10" },  
+      { q: "Qual a origem do povo que formou a nova Tutóia?", options: ["Parnaíba","Chapadinha","Tutóia Velha","São Luís"], answer: 2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFrUniZ2uL0cY33F0Azqs0ZxKroy3FkC_ANbj7jVT5eJbffyZ1IyYnTYuR&s=10" },  
+      { q: "Na época da fundação da cidade de Tutóia, qual era a principal atividade econômica?", options: ["Comércio","Pescaria e roça","Indústria","Turismo"], answer: 1, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzASfNHmRC_4mXNyvD3FcxhBa-5XFU37vSoZsum1HXKhtKlrbsOQDzwv4&s=10" },  
+      { q: "De que material eram feitas as casas das pessoas consideradas ricas na época da fundação de Tutóia?", options: ["Madeira","Palha","Tijolo de alvenaria","Tijolo de barro"], answer: 3, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmuCB9-4iG5xz26ICsrSDqcgZqVOPQ0uDF3HnmHGPrsRh2ruT_rz6iP_k&s=10" },  
+      { q: "Quantas ilhas formam o arquipélago de Tutóia aproximadamente?", options: ["5","15","20","Mais de 30"], answer: 3, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRM_09T1AVYEycAfyvowRQ_Qm5i-3yUP9n3e1yhGsOtoXJVOEe7DvFGhrFm&s=10" },  
+      { q: "Em qual período do ano as lagoas de Tutóia ficam mais cheias e bonitas?", options: ["Junho a setembro","Outubro a dezembro","Janeiro a março","Abril a maio"], answer: 2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnlFYv7101Otr9QKLwV9flK53m6qrjxjehLyJfT_sccw171AXKz_PNt70Y&s=10" },  
+      { q: "Qual patrimônio histórico é um símbolo da cidade de Tutóia?", options: ["Teatro Arthur Azevedo","Forte de São José de Ribamar","Igreja Matriz de Nossa Senhora da Conceição","Palácio dos Leões"], answer: 2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKQi8ypv8y0T-wkf_DSna5PkkjoR-U-dGDFDK2ggtH6vL61CHnYL3lEfk&s=10" }  
+    ];  
+  
+    let currentQuestion = 0;  
+    let timer;  
+    let timeLeft = 30;  
+    let prize = 0;  
+  
+    const prizes = [  
+      "R$ 1.000","R$ 2.000","R$ 5.000","R$ 10.000","R$ 20.000",  
+      "R$ 50.000","R$ 100.000","R$ 200.000","R$ 300.000","R$ 400.000","R$ 500.000","R$ 550.000","R$ 600.000","R$ 650.000","R$ 700.000","R$ 750.000","R$ 800.000","R$ 850.000","R$ 900.000","R$ 1.000.000"  
+    ];  
+  
+    const qElement = document.getElementById("question");  
+    const imgElement = document.getElementById("questionImg");  
+    const optionsElement = document.getElementById("options");  
+    const timerElement = document.getElementById("timer");  
+    const prizeElement = document.getElementById("prize");  
+    const endGameElement = document.getElementById("endGame");  
+  
+    const menuMusic = document.getElementById("menuMusic");  
+    const correctSound = document.getElementById("correctSound");  
+    const wrongSound = document.getElementById("wrongSound");  
+    const introSound = document.getElementById("introSound");  
+  
+    // Música começa no menu  
+    document.addEventListener("click", () => {  
+      if (menuMusic.paused && document.getElementById("menu").style.display !== "none") {  
+        menuMusic.play();  
+      }  
+    });  
+  
+    function startGame(){  
+      document.getElementById("menu").style.display = "none";  
+      document.getElementById("game").style.display = "block";  
+      endGameElement.style.display = "none";  
+      menuMusic.pause();  
+      currentQuestion = 0;  
+      prize = 0;  
+      showQuestion();  
+    }  
+  
+    function goToMenu(){  
+      document.getElementById("menu").style.display = "block";  
+      document.getElementById("game").style.display = "none";  
+      endGameElement.style.display = "none";  
+      clearInterval(timer);  
+      menuMusic.play();  
+    }  
+  
+    function showQuestion(){  
+      if(currentQuestion >= questions.length){  
+        qElement.textContent = "🎉 Parabéns! Você completou o jogo!!";  
+        imgElement.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmPoc8I8Gix4CvhfSpOJ7CeVWmZHnytzs1g6FnsNecHECKGWBVduygixk&s=10";  
+        optionsElement.innerHTML = "Agora você sabe um pouco das belezas e histórias de Tutóia 👏🏼👏🏼";  
+        clearInterval(timer);  
+        endGameElement.style.display = "block";  
+        return;  
+      }  
+  
+      introSound.currentTime = 0;  
+      introSound.play();  
+  
+      const q = questions[currentQuestion];  
+      qElement.textContent = q.q;  
+      imgElement.src = q.img;  
+      optionsElement.innerHTML = "";  
+      q.options.forEach((opt, i) => {  
+        const btn = document.createElement("button");  
+        btn.textContent = opt;  
+        btn.onclick = () => checkAnswer(i);  
+        optionsElement.appendChild(btn);  
+      });  
+  
+      timeLeft = 30;  
+      timerElement.textContent = "Tempo: " + timeLeft;  
+      clearInterval(timer);  
+      timer = setInterval(() => {  
+        timeLeft--;  
+        timerElement.textContent = "Tempo: " + timeLeft;  
+        if(timeLeft <= 0){  
+          clearInterval(timer);  
+          wrongSound.currentTime = 0;  
+          wrongSound.play();  
+          qElement.textContent = "⏰ Tempo esgotado! Você ganhou: " + (prizes[prize] || "nada");  
+          optionsElement.innerHTML = "";  
+        }  
+      },1000);  
+  
+      prizeElement.textContent = "Prêmio atual: " + (prizes[currentQuestion] || "");  
+    }  
+  
+    function checkAnswer(i){  
+      clearInterval(timer);  
+      const q = questions[currentQuestion];  
+      if(i === q.answer){  
+        correctSound.currentTime = 0;  
+        correctSound.play();  
+        prize = currentQuestion;  
+        currentQuestion++;  
+        setTimeout(showQuestion, 2000);  
+      } else {  
+        wrongSound.currentTime = 0;  
+        wrongSound.play();  
+        qElement.textContent = "❌ Resposta errada! Você ganhou: " + (prizes[prize] || "nada");  
+        optionsElement.innerHTML = "";  
+      }  
+    }  
+  
+    function use5050(){  
+      const q = questions[currentQuestion];  
+      const buttons = optionsElement.querySelectorAll("button");  
+      let removed = 0;  
+      buttons.forEach((btn, i) => {  
+        if(i !== q.answer && removed < 2){  
+          btn.style.display = "none";  
+          removed++;  
+        }  
+      });  
+    }  
+  
+    function skipQuestion(){  
+      currentQuestion++;  
+      showQuestion();  
+    }  
+  
+    function askAudience(){  
+      alert("📊 Plateia: A maioria votou na alternativa " + (questions[currentQuestion].answer+1));  
+    }  
+  </script>  
+</body>  
+</html>
